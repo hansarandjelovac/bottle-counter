@@ -28,8 +28,7 @@ def mySqlConnect():
     
 def velicinaAmbalaze():
     
-    "?|
-    
+    #NE ZABORAVI DINAMICKU AMBALAZU SLEPCE    
 
 def citanjeId():
     #mysqlconnect()
