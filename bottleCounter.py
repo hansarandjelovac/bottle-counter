@@ -119,7 +119,7 @@ def merenjeKolicine1():
     global kolicina1
     
     kolicina1 = (velicinaPushera - dist) // precnik1
-    #kolicina1 = int(kolicina1)
+    kolicina1 = int(kolicina1)
     print ("KOLICINA", kolicina1)
     
        
