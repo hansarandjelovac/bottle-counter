@@ -2,6 +2,7 @@ import time
 import mysql.connector
 import functools
 import RPi.GPIO as GPIO
+import math
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -116,10 +117,11 @@ def merenjeKolicine1():
     print ("distanca PRVOG senzora",dist)
     
     global kolicina1
-
-    if dist > (velicinaPushera - precnik1) :
-        kolicina1 = 0
-        print ("kolicina PRVOG senzora",kolicina1)
+    
+    kolicina1 = (velicinaPushera - dist) // precnik1
+    #kolicina1 = int(kolicina1)
+    print ("KOLICINA", kolicina1)
+    
        
     
     
