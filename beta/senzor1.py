@@ -6,16 +6,13 @@ import RPi.GPIO as GPIO
 import math
 import datetime
 
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-GPIO_TRIGGER1 = 15
-GPIO_ECHO1 = 23
-GPIO.setup(GPIO_TRIGGER1, GPIO.OUT)
-GPIO.setup(GPIO_ECHO1, GPIO.IN)
-GPIO_TRIGGER2 = 20
-GPIO_ECHO2 = 21
-GPIO.setup(GPIO_TRIGGER2, GPIO.OUT)
-GPIO.setup(GPIO_ECHO2, GPIO.IN)
+TRIG = 15
+ECHO = 23
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
 
 
 
@@ -86,24 +83,38 @@ def kolikoStajeURaf():
 
 def rastojanje():
     
-    GPIO.output(GPIO_TRIGGER1, True)
-    time.sleep(0.00001)
-    GPIO.output(GPIO_TRIGGER1, False)
- 
-    StartTime = time.time()
-    StopTime = time.time()
- 
+    try:
+        maxTime = 0.04
     
-    while GPIO.input(GPIO_ECHO1) == 0:
-        StartTime = time.time()
- 
-    while GPIO.input(GPIO_ECHO1) == 1:
-        StopTime = time.time()
- 
-    TimeElapsed = StopTime - StartTime
-    global distance0
-    distance0 = (TimeElapsed * 34300) / 2
-    return distance0
+        while True:
+    
+            GPIO.output(TRIG,False)
+    
+            time.sleep(0.01)
+    
+            GPIO.output(TRIG,True)
+    
+            time.sleep(0.00001)
+    
+            GPIO.output(TRIG,False)
+    
+            pulse_start = time.time()
+            timeout = pulse_start + maxTime
+            while GPIO.input(ECHO) == 0 and pulse_start < timeout:
+                pulse_start = time.time()
+    
+            pulse_end = time.time()
+            timeout = pulse_end + maxTime
+            while GPIO.input(ECHO) == 1 and pulse_end < timeout:
+                pulse_end = time.time()
+    
+            pulse_duration = pulse_end - pulse_start
+            global distance0
+            distance0 = pulse_duration * 17000
+            return distance0
+    except:
+        GPIO.cleanup()
+
  
 def merenja():
     
@@ -136,10 +147,20 @@ def merenja():
     
      ########################################################
      
+    #global distance1
+    #minimum = min(distance0, distance2, distance3, distance4, distance5, distance6, distance7, distance8, distance9, distance10)
+    #maksimum = max(distance0, distance2, distance3, distance4, distance5, distance6, distance7, distance8, distance9, distance10)
+   #distance1 = ((distance0 + distance2+distance3+distance4+distance5+distance6+distance7+distance8+distance9+distance10 - minimum - maksimum) /8 )
+    #print ("Srednja vrednost je", distance1)
+    
     global distance1
-    minimum = min(distance0, distance2, distance3, distance4, distance5, distance6, distance7, distance8, distance9, distance10)
-    maksimum = max(distance0, distance2, distance3, distance4, distance5, distance6, distance7, distance8, distance9, distance10)
-    distance1 = ((distance0 + distance2+distance3+distance4+distance5+distance6+distance7+distance8+distance9+distance10 - minimum - maksimum) /8 )
+    lista = [distance0, distance2, distance3, distance4, distance5, distance6, distance7, distance8, distance9, distance10]
+    #print lista
+    minimum3 = sorted(lista) [:3]
+    maximum3 = sorted(lista, reverse = True) [:3]
+    #print ("MAKSIMUM", maximum3)
+    #print ("MINIMUM", minimum3)
+    distance1 = ((sum(lista) - sum(minimum3) - sum(maximum3)) / 4)
     print ("Srednja vrednost je", distance1)
         
 # citanje poslednje kolicine iz baze za prvi senzor zbog uporedjivanja sa trenutnim stanjem
@@ -225,8 +246,8 @@ while True:
     kolikoStajeURaf()
     rastojanje()
     merenja()
-   # time.sleep(3)
+   ## time.sleep(3)
     citanjeIzBaze1()
     merenjeKolicine1()
     uporedjivanjeStanja()
-    time.sleep(1)
+    time.sleep(20)
