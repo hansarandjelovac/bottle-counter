@@ -16,7 +16,7 @@ GPIO.setup(GPIO_TRIGGER2, GPIO.OUT)
 GPIO.setup(GPIO_ECHO2, GPIO.IN)
 
 global velicinaPushera
-velicinaPushera = 80
+velicinaPushera = 50
 
 # inicijalna konekcija na bazu
 def mySqlConnect():
@@ -51,9 +51,9 @@ def citanjeId1():
     mycursor = mydb.cursor()
 
     mycursor.execute("SELECT idProizvod FROM rasporedProizvoda WHERE id = 1 ;")
-    global idProizvod
-    idProizvod = mycursor.fetchone()
-    idProizvod = functools.reduce(lambda sub, ele: sub * 10 + ele, idProizvod)
+    global idProizvod1
+    idProizvod1 = mycursor.fetchone()
+    idProizvod1 = functools.reduce(lambda sub, ele: sub * 10 + ele, idProizvod1)
     
     
 #iscitavanje koliko moze da stane u raf za prvi senzor
@@ -61,12 +61,12 @@ def citanjeId1():
 def kolikoStajeURaf1():
     
     mycursor = mydb.cursor()
-    global x
-    x = velicinaPushera / precnik1
-    sql = "UPDATE rasporedProizvoda SET kolikoStajeURaf=%s WHERE id=1;" %x
+    global kolikoStajeURaf1
+    kolikoStajeURaf1 = velicinaPushera / precnik1
+    sql = "UPDATE rasporedProizvoda SET kolikoStajeURaf=%s WHERE id=1;" %kolikoStajeURaf1
     mycursor.execute(sql)
     mydb.commit()
-    print ("U raf staje", x)
+    print ("U raf staje", kolikoStajeURaf1)
             
 #merenje distance za prvi senzor
 
@@ -94,20 +94,20 @@ def rastojanje1():
     
     
     
-# citanje trenutne kolicine iz baze za prvi senzor
+# citanje poslednje kolicine iz baze za prvi senzor zbog uporedjivanja sa trenutnim stanjem
 
 def citanjeIzBaze1():
     mycursor = mydb.cursor()
 
     mycursor.execute("SELECT trenutnoStanje FROM test WHERE idSenzora = 1 ORDER BY id DESC LIMIT 1;")
     
-    global trenutnaKolicina1
-    trenutnaKolicina1 = mycursor.fetchone()
-    print (trenutnaKolicina1)
+    global trenutnaKolicinaUBazi1
+    trenutnaKolicinaUBazi1 = mycursor.fetchone()
+    print (trenutnaKolicinaUBazi1)
 
     #konvertovanje tuple u int
-    trenutnaKolicina1 = functools.reduce(lambda sub, ele: sub * 10 + ele, trenutnaKolicina1)
-    return trenutnaKolicina1    
+    trenutnaKolicinaUBazi1 = functools.reduce(lambda sub, ele: sub * 10 + ele, trenutnaKolicinaUBazi1)
+    return trenutnaKolicinaUBazi1    
 
 
 # merenje trenutne kolicine za prvi senzor
@@ -129,20 +129,20 @@ def merenjeKolicine1():
 #uporedjivanje stanja i upisivanje u tabelu trecu        
 def uporedjivanjeStanja():
     
-    if trenutnaKolicina > kolicina:
-        uzetoIzRafa = trenutnaKolicina - kolicina
+    if trenutnaKolicinaUBazi1 > kolicina1:
+        uzetoIzRafa1 = trenutnaKolicinaUBazi1 - kolicina1
 
     else:
-        uzetoIzRafa = 0
+        uzetoIzRafa1 = 0
 
-    if trenutnaKolicina < kolicina:
-        dodatoURaf = kolicina - trenutnaKolicina
+    if trenutnaKolicinaUBazi1 < kolicina1:
+        dodatoURaf1 = kolicina1 - trenutnaKolicinaUBazi1
 
     else:
-        dodatoURaf = 0
+        dodatoURaf1 = 0
 
 
-    if  kolicina == trenutnaKolicina:
+    if  kolicina1 == trenutnaKolicinaUBazi1:
         pass
         print ("nema promena PRVOG senzora\n")
 
@@ -150,13 +150,13 @@ def uporedjivanjeStanja():
 
         mycursor = mydb.cursor()
 
-        sql = "INSERT INTO test (idRaf, idRed, idKolona, idProizvod, kolikoStajeURaf, trenutnoStanje, dodatoURaf, uzetoIzRafa) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        val = ("1", "1", "1", idProizvod, kolikoStajeURaf, kolicina, dodatoURaf, uzetoIzRafa)
+        sql = "INSERT INTO test (idSenzora, idRaf, idRed, idKolona, idProizvod, trenutnoStanje, dodatoURaf, uzetoIzRafa) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        val = ("1", "1", "1", "1", idProizvod1, kolicina1, dodatoURaf1, uzetoIzRafa1)
         mycursor.execute(sql, val)
 
         mydb.commit()
 
-        print ("upisana nova kolicina PRVOG senzora\n", kolicina)
+        print ("upisana nova kolicina PRVOG senzora\n", kolicina1)
 
     
     
@@ -167,3 +167,4 @@ kolikoStajeURaf1()
 rastojanje1()
 citanjeIzBaze1()
 merenjeKolicine1()
+uporedjivanjeStanja()
